@@ -6,6 +6,12 @@ import re
 # hex_int_test checknout spravny hex format
 
 
+# <var>  GF@swag -> type = var (variable regex)
+# <symb> int@1 -> typ = int/boo/string (constant regex)
+#        GF@swag -> typ = var (variable regex)
+# <label> jakykolivstring -> type = var (string regex)
+# <type> int string bool -> type = type ()
+
 parser = argparse.ArgumentParser(description='Process input or display help')
 parser.add_argument('input', nargs='?', help='Input from stdin or --help to display help')    
 args = parser.parse_args()
@@ -13,6 +19,7 @@ variable_regex = r'^(LF|TF|GF)@[a-zA-Z_\-$&%*!?]+[0-9]*$'
 label_regex = r'^[a-zA-Z0-9_\-$&%*!?]+[0-9]*$'
 constant_regex = r'^(bool|nil|int|string)@(.+)$'
 string_regex = r'^.*$'
+type_regex = r'(int|bool|string)'
 
 if args.input == '--help':
        parser.print_help()
@@ -26,23 +33,50 @@ def print_label(opcode : str):
     order += 1
     print(f'\t<instruction order="{order}" opcode="{opcode}">')
 
-def print_arg(arg, args_num: int, idk):
+def print_arg(arg, args_num: int):
 
-    match idk :
-        case "label":
-            pass
-        case "var":
-            pass
-        case "type":
-            pass
-    typ, value = arg[1].split('@')
-        
+    # match idk :
+    #     case "label":
+    #         typ = "label"
+    #         value = arg
+    #     case "var":
+    #         typ = "var"
+    #         value = arg 
+    #     case "type":
+    #         typ, value = arg[1].split('@')
+    
+    #temporary
+    index = 1
+
     if len(arg)-1 != args_num:
         print("Wrong number of arguments LMAO LMAO LMAO LMAOLMAO LMAOLMAO LMAO")
         sys.exit(23)
     else:
-        for i in range(args_num):
-            print(f'\t\t<arg{i+1} type="{typ}">{value}</arg{i+1}>')
+        for i in arg[1:]:
+            # print(f'\t\t<arg{i+1} type="{typ}">{value}</arg{i+1}>')
+            index += 1
+            if re.match(variable_regex, i) is not None:
+                typ = "var"
+                value = i
+            elif re.match(constant_regex, i) is not None:
+                
+                
+                typ, value = i.split('@',1)
+                
+                
+            elif re.match(label_regex, i) is not None:
+                typ = "label"
+                value = i
+            elif re.match(type_regex, i) is not None:
+                typ = "type"
+                value = i
+
+            
+            print(f'\t\t<arg{index} type="{typ}">{value}</arg{index}>')
+            
+        
+        
+        
         print("\t</instruction>")
 
 def var_check(arg):
@@ -88,7 +122,7 @@ def constant_check(arg):
                 print(f'ERR: {constant} is not a nill')
                 sys.exit(23)  
 def type_check(arg) :
-    type_regex = r'(int|bool|string)'
+    
     if re.match(type_regex, arg) is None:
                 print(f'ERR: {arg} is not a type')
                 sys.exit(23)  
@@ -125,7 +159,7 @@ for line in sys.stdin:
     match word[0]:
         # 0
         case "CREATEFRAME" | "PUSHFRAME"| "POPFRAME"| "RETURN"| "BREAK":
-            print("OK") # Zkontrolovat ze tam nejsou argumenty
+            print("OK") 
             if len(word) != 1:
                 print("Too much arguments")
                 sys.exit(23)
