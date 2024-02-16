@@ -3,6 +3,7 @@ import argparse
 import re
 # TODOTODOTODOTODOTODO
 # comments_test hlavicka a az potom komentar
+# hex_int_test checknout spravny hex format
 # string@ prazdny string nefunguje dopici
 
 
@@ -24,7 +25,7 @@ type_regex = r'(int|bool|string)'
 if args.input == '--help':
        parser.print_help()
 
-
+header = False
 order = 0
 
 ### FUNCTION DEFINITIONS ###
@@ -58,8 +59,7 @@ def print_arg(arg, args_num: int):
             elif re.match(type_regex, i) is not None:
                 typ = "type"
                 value = i
-            else:
-                sys.exit(23)
+
             
             print(f'\t\t<arg{index} type="{typ}">{value}</arg{index}>')
             
