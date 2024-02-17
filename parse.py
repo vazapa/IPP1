@@ -2,9 +2,12 @@ import sys
 import argparse
 import re
 # TODOTODOTODOTODOTODO
-# comments_test hlavicka/prazdny radek a az potom komentar
+#
 # string@ prazdny string nefunguje dopici
-
+# pop_error.src nechapu proc to ma byt err code 23
+# prazdny soubor
+# 
+# TODOTODOTODOTODOTODO
 
 
 # <var>  GF@swag -> type = var (variable regex)
@@ -85,19 +88,17 @@ def constant_check(arg):
         print(f'ERR: {arg} is not a constant')
         sys.exit(23)  
 
-
     typ = check.group(1)
     constant = check.group(2)
 
     match typ:
         case "string":
-            if re.match(string_regex, constant) is None:
+            string_regex2 = r'^(?:[^#\\]|\\[0-9]{3})+$'
+            if re.match(string_regex2, constant) is None:
                 print(f'ERR: {constant} is not a string')
                 sys.exit(23)  
         case "int":
             int_regex = r'^((-?0x[0-9a-fA-F]+)|(-?0o[0-7]+)|(-?[0-9]+))$'
-            # int_regex = r'^((-?0x[0-9a-fA-F]+)|([-0-9]+))$'
-            
             if re.match(int_regex, constant) is None:
                 print(f'ERR: {constant} is not a int or hex or')
                 sys.exit(23)  
@@ -125,15 +126,29 @@ def constantORvar(arg):
         var_check(arg)
 
 def header_check():
-    first_line = re.sub(r'#.*', '', sys.stdin.readline())
-    if first_line.strip() != ".IPPcode24":
-        print("Missing header")
-        sys.exit(21)
+    for line in sys.stdin:
+    
+        if (line.startswith('#')) or (not line.strip()) :
+            continue
+    
+        line = re.sub(r'#.*', '', line)
+    
+        word = line.split()
+
+        match word[0]:
+            case ".IPPcode24":
+                break
+            case _:
+                print("Missing header")
+                sys.exit(21)
+            
+    
     print('<?xml version="1.0" encoding="UTF-8"?>')
     print('<program language="IPPcode24">')
 ### FUNCTION DEFINITIONS ###
 
 header_check()
+header = False
 
 for line in sys.stdin:
     
@@ -144,8 +159,10 @@ for line in sys.stdin:
     
     word = line.split()
 
-    
     match word[0].upper():
+        case ".IPPCODE24":
+            print("More than 1 header")
+            sys.exit(23)
         # 0
         case "CREATEFRAME" | "PUSHFRAME"| "POPFRAME"| "RETURN"| "BREAK":
             if len(word) != 1:
@@ -184,7 +201,6 @@ for line in sys.stdin:
             print_arg(word,2,"")
             var_check(word[1])
             constantORvar(word[2])
-    
         # 3
         # <var> <symb1>
         case "NOT":
