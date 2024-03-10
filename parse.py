@@ -1,27 +1,13 @@
 import sys
 import argparse
 import re
-# TODOTODOTODOTODOTODO
-#
-# string@ prazdny string nefunguje dopici
-# pop_error.src nechapu proc to ma byt err code 23
-# prazdny soubor
-# 
-# TODOTODOTODOTODOTODO
-
-
-# <var>  GF@swag -> type = var (variable regex)
-# <symb> int@1 -> typ = int/boo/string (constant regex)
-#        GF@swag -> typ = var (variable regex)
-# <label> jakykolivstring -> type = var (string regex)
-# <type> int string bool -> type = type ()
 
 parser = argparse.ArgumentParser(description='Process input or display help')
 parser.add_argument('input', nargs='?', help='Input from stdin or --help to display help')    
 args = parser.parse_args()
-variable_regex = r'^(LF|TF|GF)@[a-zA-Z_\-$&%*!?]+[0-9]*$'
+variable_regex = r'^(LF|TF|GF)@[a-zA-Z_\-$&%*!?]+[0-9]*[a-zA-Z_\-$&%*!?]*$'
 label_regex = r'^[a-zA-Z0-9_\-$&%*!?]+[0-9]*$'
-constant_regex = r'^(bool|nil|int|string)@(.+)$'
+constant_regex = r'^(bool|nil|int|string)@(.*)$'
 string_regex = r'^.*$'
 type_regex = r'^(int|bool|string)$'
 tab = ' ' * 4
@@ -33,6 +19,10 @@ if args.input == '--help':
 order = 0
 
 ### FUNCTION DEFINITIONS ###
+def args_num(acc_num,exp_num):
+    if acc_num != exp_num :
+        sys.exit(23)
+
 def print_label(opcode : str):
     global order
     order += 1
@@ -42,15 +32,15 @@ def print_arg(arg, args_num: int, typeORint: str):
     index = 0
 
     if len(arg)-1 != args_num:
-        print("Wrong number of arguments LMAO LMAO LMAO LMAOLMAO LMAOLMAO LMAO")
+        print("Wrong number of arguments")
         sys.exit(23)
     else:
         for i in arg[1:]:
             
             index += 1
             if re.match(variable_regex, i) is not None:
+                value = i.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
                 typ = "var"
-                value = i
             elif re.match(constant_regex, i) is not None:
                 typ, value = i.split('@',1)
                 value = value.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
@@ -61,19 +51,15 @@ def print_arg(arg, args_num: int, typeORint: str):
                 typ = "label"
                 value = i
             else:
+                print("print_arg err")
                 sys.exit(23)
             
             print(tab *2 + f'<arg{index} type="{typ}">{value}</arg{index}>')
-            
-        
-        
-        
         print(tab + "</instruction>")
 
 def var_check(arg):
-    
-
     if re.match(variable_regex, arg) is None:
+
         print(f'ERR: {arg} is not a variable')
         sys.exit(23)  
 def label_check(arg):
@@ -93,23 +79,23 @@ def constant_check(arg):
 
     match typ:
         case "string":
-            string_regex2 = r'^(?:[^#\\]|\\[0-9]{3})+$'
+            string_regex2 = r'^(?:[^#\\]|\\[0-9]{3})*$'
             if re.match(string_regex2, constant) is None:
                 print(f'ERR: {constant} is not a string')
                 sys.exit(23)  
         case "int":
-            int_regex = r'^((-?0x[0-9a-fA-F]+)|(-?0o[0-7]+)|(-?[0-9]+))$'
+            int_regex = r'^(([-+]?)((0x[0-9a-fA-F]+)|(0o[0-7]+)|([0-9]+)))$'
             if re.match(int_regex, constant) is None:
-                print(f'ERR: {constant} is not a int or hex or')
+                print(f'ERR: {constant} is not a int or hex')
                 sys.exit(23)  
         case "bool":
             bool_regex = r'^(true|false)$'
             if re.match(bool_regex, constant) is None:
                 print(f'ERR: {constant} is not a bool')
                 sys.exit(23)  
-        case "nill":
-            if constant != "nill":
-                print(f'ERR: {constant} is not a nill')
+        case "nil":
+            if constant != "nil":
+                print(f'ERR: {constant} is not a nil')
                 sys.exit(23)  
 def type_check(arg) :
     
@@ -165,38 +151,41 @@ for line in sys.stdin:
             sys.exit(23)
         # 0
         case "CREATEFRAME" | "PUSHFRAME"| "POPFRAME"| "RETURN"| "BREAK":
-            if len(word) != 1:
-                print("Too much arguments")
-                sys.exit(23)
+            args_num(len(word),1)
             print_label(word[0])
             print(tab + "</instruction>")
         # 1
         # <var>
-        case "DEFVAR":
-            print_label(word[0])            
+        case "DEFVAR"| "POPS":
+            args_num(len(word),2)
+            print_label(word[0]) 
             print_arg(word,1,"")
             var_check(word[1])
         # <label>
         case "CALL"| "LABEL"| "JUMP":
+            args_num(len(word),2)
             print_label(word[0])
             label_check(word[1])
             print_arg(word,1,"label")
             
         # <symb>
-        case "PUSHS"| "POPS"| "WRITE"| "EXIT"| "DPRINT":
+        case "PUSHS"| "WRITE"| "EXIT"| "DPRINT":
         # print_label(word)
+            args_num(len(word),2)
             print_label(word[0])
             print_arg(word,1,"")
             constantORvar(word[1])
         # 2
         # <var> <type>
         case "READ":
+            args_num(len(word),3)
             print_label(word[0]) 
             print_arg(word,2,"type")
             var_check(word[1])
             type_check(word[2])
         # <var> <symb>
         case "INT2CHAR" | "MOVE" | "STRLEN" | "TYPE" :
+            args_num(len(word),3)
             print_label(word[0])
             print_arg(word,2,"")
             var_check(word[1])
@@ -204,12 +193,14 @@ for line in sys.stdin:
         # 3
         # <var> <symb1>
         case "NOT":
+            args_num(len(word),3)
             print_label(word[0])
             print_arg(word,2,"")
             var_check(word[1])
             constantORvar(word[2])
         # <var> <symb1> <symb2>
         case "ADD"| "SUB"| "MUL"| "IDIV"| "LT"| "GT"| "EQ"| "AND"| "OR"| "NOT"| "STRI2INT"| "CONCAT"| "GETCHAR"| "SETCHAR":
+            args_num(len(word),4)
             print_label(word[0])
             print_arg(word,3,"")
             var_check(word[1])
@@ -217,8 +208,9 @@ for line in sys.stdin:
             constantORvar(word[2])
         # <label> <symb1> <symb2>
         case "JUMPIFEQ"| "JUMPIFNEQ":
+            args_num(len(word),4)
             print_label(word[0])
-            print_arg(word,3,"label")   
+            print_arg(word,3,"label")  
             label_check(word[1])
             constantORvar(word[2])
             constantORvar(word[3])     
