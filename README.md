@@ -5,10 +5,10 @@ Login: xzaple40
 
 ---
 
-## `parse.py
+## `parse.py`
 
 ## Popis projektu
-První projekt z předmětu IPP (parse.py) zahrnuje vytvoření skriptu, který analyzuje zdrojový kód v jazyce IPPcode24. Skript čte vstupní kód, kontroluje jeho lexikální a syntaktickou správnost a následně vygeneruje XML reprezentaci programu. Výstupní XML obsahuje instrukce a jejich argumenty ve správné struktuře dle specifikace. Projekt klade důraz na zpracování různých typů operandů, jako jsou proměnné, literály nebo návěští, a poskytuje jasně definované návratové hodnoty v případě chybových situací` 
+První projekt z předmětu IPP (parse.py) zahrnuje vytvoření skriptu, který analyzuje zdrojový kód v jazyce IPPcode24. Skript čte vstupní kód, kontroluje jeho lexikální a syntaktickou správnost a následně vygeneruje XML reprezentaci programu. Výstupní XML obsahuje instrukce a jejich argumenty ve správné struktuře dle specifikace. Projekt klade důraz na zpracování různých typů operandů, jako jsou proměnné, literály nebo návěští, a poskytuje jasně definované návratové hodnoty v případě chybových situací 
 ### Spuštění
 
 Zobrazení nápovědy
